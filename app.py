@@ -6,13 +6,11 @@ import matplotlib.pyplot as plt
 import wave
 import io
 
-# ════════════════════════════════════════════════════════════════
 st.set_page_config(
     page_title="قانون بيو-سافار | Biot-Savart Law",
     page_icon="🧲", layout="wide", initial_sidebar_state="expanded"
 )
 
-# ════════════════════════════════════════════════════════════════
 def generate_tone(frequency=440, duration=0.15, volume=0.3, sample_rate=22050):
     n_samples = int(sample_rate * duration)
     t = np.linspace(0, duration, n_samples, False)
@@ -34,7 +32,6 @@ def play_sound(sound_type="click"):
     f, d, v = sounds.get(sound_type, sounds["click"])
     return generate_tone(f, d, v)
 
-# ════════════════════════════════════════════════════════════════
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap');
@@ -63,7 +60,6 @@ h2,h3{color:#0d47a1}
 </style>
 """, unsafe_allow_html=True)
 
-# ════════════════════════════════════════════════════════════════
 MU_0 = 4 * np.pi * 1e-7
 MATERIALS = {
     "الفراغ (Vacuum)": 1.0, "الهواء (Air)": 1.00000037,
@@ -121,8 +117,9 @@ def oersted_animation():
     </script>
     </div>"""
 
+# ════════════════════════════════════════════════════════════════
 def straight_wire_animation(current_dir=1, current_val=5, distance=0.1, material_mu=1.0):
-    dir_label = "للأعلى" if current_dir == 1 else "للأسفل"
+    dir_label = "للأعلى (خارج الصفحة) ⊙" if current_dir == 1 else "للأسفل (داخل الصفحة) ⊗"
     html = """
     <div style="text-align:center;direction:rtl">
     <canvas id="wireCanvas" width="650" height="500" style="border-radius:15px;background:#0a1628;max-width:100%"></canvas>
@@ -141,18 +138,25 @@ def straight_wire_animation(current_dir=1, current_val=5, distance=0.1, material
             var r=radii[idx];var col=colors[idx];
             ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.globalAlpha=0.4;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
             for(var p=0;p<6;p++){
-                var baseAngle=(p/6)*Math.PI*2;var angle=baseAngle+dir*(t*0.02)*(1+0.5*(5-idx)/5);
+                var baseAngle=(p/6)*Math.PI*2;
+                var angle=baseAngle-dir*(t*0.02)*(1+0.5*(5-idx)/5);
                 var px=cx+r*Math.cos(angle),py=cy+r*Math.sin(angle);
                 var grd=ctx.createRadialGradient(px,py,0,px,py,8);grd.addColorStop(0,col);grd.addColorStop(1,'transparent');
                 ctx.fillStyle=grd;ctx.beginPath();ctx.arc(px,py,8,0,Math.PI*2);ctx.fill();
                 ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px,py,2.5,0,Math.PI*2);ctx.fill();
-                var tang=angle+dir*Math.PI/2;ctx.strokeStyle=col;ctx.lineWidth=2;
+                var tang=angle-dir*Math.PI/2;
+                ctx.strokeStyle=col;ctx.lineWidth=2;
                 ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+12*Math.cos(tang),py+12*Math.sin(tang));ctx.stroke();
+                var ah1=tang+2.5,ah2=tang-2.5;
+                ctx.beginPath();ctx.moveTo(px+12*Math.cos(tang),py+12*Math.sin(tang));ctx.lineTo(px+6*Math.cos(ah1),py+6*Math.sin(ah1));ctx.stroke();
+                ctx.beginPath();ctx.moveTo(px+12*Math.cos(tang),py+12*Math.sin(tang));ctx.lineTo(px+6*Math.cos(ah2),py+6*Math.sin(ah2));ctx.stroke();
             }
             var bVal=(4*Math.PI*1e-7*I*mu/(2*Math.PI*(r*0.001))).toExponential(2);
             ctx.fillStyle=col;ctx.font='11px Cairo';ctx.fillText('B='+bVal+' T',cx+r+10,cy-5);
         }
         ctx.fillStyle='#fff';ctx.font='bold 14px Cairo';ctx.fillText('التيار: '+I+' A  (__DIRLABEL__)',20,30);
+        var fieldDirText = dir===1 ? 'المجال: عكس عقارب الساعة' : 'المجال: مع عقارب الساعة';
+        ctx.fillStyle='#4caf50';ctx.font='bold 13px Cairo';ctx.fillText(fieldDirText,20,c.height-50);
         ctx.fillStyle='#90caf9';ctx.font='12px Cairo';ctx.fillText('نقطة = خارج الصفحة    علامة x = داخل الصفحة',20,c.height-20);
         ctx.fillStyle='#ffd54f';ctx.font='bold 13px Cairo';ctx.fillText('الجسيمات المتحركة تُظهر اتجاه المجال المغناطيسي',cx-150,cy+radii[4]+40);
         t++;requestAnimationFrame(draw);
@@ -166,6 +170,7 @@ def straight_wire_animation(current_dir=1, current_val=5, distance=0.1, material
     html = html.replace("__DIRLABEL__", dir_label)
     return html
 
+# ════════════════════════════════════════════════════════════════
 def circular_coil_animation(current_dir=1, current_val=5, N=5, R=0.1, material_mu=1.0):
     html = """
     <div style="text-align:center;direction:rtl">
@@ -180,15 +185,31 @@ def circular_coil_animation(current_dir=1, current_val=5, N=5, R=0.1, material_m
         for(var i=0;i<maxDraw;i++){var offset=i*4;ctx.strokeStyle='rgba(100,181,246,'+(0.3+0.1*i)+')';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(cx,cy+offset-15,coilR,coilR*0.3,0,0,Math.PI*2);ctx.stroke();}
         if(N>8){ctx.fillStyle='#90caf9';ctx.font='12px Cairo';ctx.fillText('+'+(N-8)+' لفات',cx+coilR+20,cy);}
         var nArrows=12;
-        for(var i=0;i<nArrows;i++){var angle=(i/nArrows)*Math.PI*2+dir*t*0.015;var px=cx+coilR*Math.cos(angle);var py=cy+(coilR*0.3)*Math.sin(angle)-15;var tang=angle+dir*Math.PI/2;ctx.fillStyle='#f44336';ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#ff8a80';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+10*Math.cos(tang),py+10*Math.sin(tang));ctx.stroke();}
-        var bDir=dir,arrowLen=60;ctx.strokeStyle='#4caf50';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(cx,cy+bDir*arrowLen);ctx.lineTo(cx,cy-bDir*arrowLen);ctx.stroke();
-        ctx.fillStyle='#4caf50';ctx.beginPath();ctx.moveTo(cx,cy-bDir*arrowLen);ctx.lineTo(cx-12,cy-bDir*arrowLen+bDir*20);ctx.lineTo(cx+12,cy-bDir*arrowLen+bDir*20);ctx.closePath();ctx.fill();
+        for(var i=0;i<nArrows;i++){
+            var angle=(i/nArrows)*Math.PI*2-dir*t*0.015;
+            var px=cx+coilR*Math.cos(angle);
+            var py=cy+(coilR*0.3)*Math.sin(angle)-15;
+            var tang=angle-dir*Math.PI/2;
+            ctx.fillStyle='#f44336';ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();
+            ctx.strokeStyle='#ff8a80';ctx.lineWidth=2;
+            ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+10*Math.cos(tang),py+10*Math.sin(tang));ctx.stroke();
+        }
+        var bDir=dir,arrowLen=60;
+        ctx.strokeStyle='#4caf50';ctx.lineWidth=5;
+        ctx.beginPath();ctx.moveTo(cx,cy+bDir*arrowLen);ctx.lineTo(cx,cy-bDir*arrowLen);ctx.stroke();
+        ctx.fillStyle='#4caf50';ctx.beginPath();
+        ctx.moveTo(cx,cy-bDir*arrowLen);
+        ctx.lineTo(cx-12,cy-bDir*arrowLen+bDir*20);
+        ctx.lineTo(cx+12,cy-bDir*arrowLen+bDir*20);ctx.closePath();ctx.fill();
         ctx.fillStyle='#4caf50';ctx.font='bold 18px Cairo';ctx.direction='rtl';ctx.fillText('B',cx-30,cy-bDir*arrowLen+5);
-        ctx.strokeStyle='rgba(76,175,80,0.3)';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(cx,cy-bDir*200);ctx.lineTo(cx,cy+bDir*200);ctx.stroke();ctx.setLineDash([]);
+        ctx.strokeStyle='rgba(76,175,80,0.3)';ctx.lineWidth=2;ctx.setLineDash([6,4]);
+        ctx.beginPath();ctx.moveTo(cx,cy-bDir*200);ctx.lineTo(cx,cy+bDir*200);ctx.stroke();ctx.setLineDash([]);
         var bVal=(4*Math.PI*1e-7*I*N*mu/(2*R)).toExponential(2);
         ctx.fillStyle='#fff';ctx.font='bold 14px Cairo';ctx.fillText('B = '+bVal+' T',20,30);
-        ctx.fillStyle='#ffd54f';ctx.font='13px Cairo';ctx.fillText('N = '+N+' لفة، I = '+I+' A',20,55);
-        ctx.fillStyle='#90caf9';ctx.font='12px Cairo';ctx.fillText('الأسهم الحمراء = اتجاه التيار',20,c.height-40);ctx.fillText('السهم الأخضر = اتجاه المجال في المركز',20,c.height-20);
+        var bDirText = dir===1 ? 'المجال للأعلى - التيار عكس عقارب الساعة' : 'المجال للأسفل - التيار مع عقارب الساعة';
+        ctx.fillStyle='#ffd54f';ctx.font='13px Cairo';ctx.fillText(bDirText,20,55);
+        ctx.fillStyle='#90caf9';ctx.font='12px Cairo';ctx.fillText('الأسهم الحمراء = اتجاه التيار في الملف',20,c.height-40);
+        ctx.fillText('السهم الأخضر = اتجاه المجال في المركز',20,c.height-20);
         t++;requestAnimationFrame(draw);
     }draw();
     </script>
@@ -200,6 +221,7 @@ def circular_coil_animation(current_dir=1, current_val=5, N=5, R=0.1, material_m
     html = html.replace("__MU__", str(material_mu))
     return html
 
+# ════════════════════════════════════════════════════════════════
 def solenoid_animation(current_dir=1, current_val=5, n=1400, L=0.5, material_mu=1.0):
     html = """
     <div style="text-align:center;direction:rtl">
@@ -212,7 +234,7 @@ def solenoid_animation(current_dir=1, current_val=5, n=1400, L=0.5, material_mu=
         ctx.clearRect(0,0,c.width,c.height);
         ctx.fillStyle='rgba(30,60,90,0.5)';ctx.strokeStyle='#546e7a';ctx.lineWidth=2;
         ctx.beginPath();ctx.roundRect(sx,sy,sw,sh,15);ctx.fill();ctx.stroke();
-        for(var i=0;i<turns;i++){var x=sx+20+i*(sw-40)/turns;ctx.strokeStyle='rgba(100,181,246,0.6)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,sy+sh/2,8,sh/2-10,0,0,Math.PI*2);ctx.stroke();var aDir=dir*(i%2===0?1:-1);ctx.fillStyle='#f44336';ctx.beginPath();ctx.arc(x,sy+5,4,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#ff8a80';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x,sy+5);ctx.lineTo(x+aDir*12,sy+5);ctx.stroke();}
+        for(var i=0;i<turns;i++){var x=sx+20+i*(sw-40)/turns;ctx.strokeStyle='rgba(100,181,246,0.6)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,sy+sh/2,8,sh/2-10,0,0,Math.PI*2);ctx.stroke();var aDir=-dir*(i%2===0?1:-1);ctx.fillStyle='#f44336';ctx.beginPath();ctx.arc(x,sy+5,4,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#ff8a80';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x,sy+5);ctx.lineTo(x+aDir*12,sy+5);ctx.stroke();}
         var fDir=dir,nLines=5;
         for(var i=0;i<nLines;i++){var y=sy+30+i*(sh-60)/(nLines-1);for(var p=0;p<8;p++){var px=sx+30+((p/8+t*0.008*fDir)%1)*(sw-60);if(px<sx+10||px>sx+sw-10)continue;var grd=ctx.createRadialGradient(px,y,0,px,y,6);grd.addColorStop(0,'#4caf50');grd.addColorStop(1,'transparent');ctx.fillStyle=grd;ctx.beginPath();ctx.arc(px,y,6,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px,y,2,0,Math.PI*2);ctx.fill();}ctx.strokeStyle='rgba(76,175,80,0.4)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(sx+15,y);ctx.lineTo(sx+sw-15,y);ctx.stroke();ctx.setLineDash([]);}
         var arrowY=sy+sh/2;ctx.strokeStyle='#66bb6a';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(sx+30,arrowY);ctx.lineTo(sx+sw-30,arrowY);ctx.stroke();
@@ -237,6 +259,7 @@ def solenoid_animation(current_dir=1, current_val=5, n=1400, L=0.5, material_mu=
     html = html.replace("__MU__", str(material_mu))
     return html
 
+# ════════════════════════════════════════════════════════════════
 def right_hand_animation(case="wire", current_dir=1):
     case_names = {"wire": "موصل مستقيم", "coil": "ملف دائري", "solenoid": "ملف لولبي"}
     case_label = case_names.get(case, "موصل مستقيم")
@@ -326,7 +349,7 @@ def plot_straight_wire_field(I, r, material_mu):
     B_at_r = MU_0 * I * material_mu / (2 * np.pi * r)
     ax1.plot(r*100, B_at_r*1e6, 'o', color='#ff9800', markersize=12, zorder=5)
     ax1.set_xlabel('r (cm)', color='white', fontsize=12);ax1.set_ylabel('B (uT)', color='white', fontsize=12)
-    ax1.set_title('B vs r (inverse)', color='white', fontsize=14, fontweight='bold')
+    ax1.set_title('B vs r', color='white', fontsize=14, fontweight='bold')
     ax1.legend(facecolor='#1a237e', edgecolor='#37474f', labelcolor='white');ax1.grid(True, alpha=0.2, color='#546e7a')
     currents = np.linspace(0.1, 20, 200)
     B_vs_I = MU_0 * currents * material_mu / (2 * np.pi * r)
@@ -334,7 +357,7 @@ def plot_straight_wire_field(I, r, material_mu):
     ax2.axvline(x=I, color='#ffeb3b', linestyle='--', linewidth=2, label=f'I = {I:.1f} A')
     ax2.plot(I, B_at_r*1e6, 'o', color='#ffeb3b', markersize=12, zorder=5)
     ax2.set_xlabel('I (A)', color='white', fontsize=12);ax2.set_ylabel('B (uT)', color='white', fontsize=12)
-    ax2.set_title('B vs I (direct)', color='white', fontsize=14, fontweight='bold')
+    ax2.set_title('B vs I', color='white', fontsize=14, fontweight='bold')
     ax2.legend(facecolor='#1a237e', edgecolor='#37474f', labelcolor='white');ax2.grid(True, alpha=0.2, color='#546e7a')
     plt.tight_layout();return fig
 
@@ -404,7 +427,7 @@ def main():
 
     tabs = st.tabs(["🏠 المقدمة", "📐 القانون والاشتقاق", "📏 موصل مستقيم", "🔄 ملف دائري", "🔧 ملف لولبي", "✋ قاعدة اليد اليمنى", "☢️ احتواء البلازما", "📝 التقييم"])
 
-    # ═══ TAB 0: INTRO ═══
+    # ═══ TAB 0 ═══
     with tabs[0]:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("## 🔬 تجربة أورستد - البداية المذهلة")
@@ -430,21 +453,15 @@ def main():
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="info-box">', unsafe_allow_html=True)
-        st.markdown("""
-        ### 🤔 كيف نحسب المجال؟
-        العالمان **بيو** و **سافار** توصلا تجريبياً إلى علاقة رياضية!
-        انتقل للتبويب التالي 👉
-        """)
+        st.markdown("### 🤔 كيف نحسب المجال؟ العالمان **بيو** و **سافار** توصلا تجريبياً إلى علاقة رياضية! انتقل للتبويب التالي 👉")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # ═══ TAB 1: LAW ═══
+    # ═══ TAB 1 ═══
     with tabs[1]:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("## 📐 قانون بيو-سافار")
         st.markdown("الموصل يتكوّن من أجزاء صغيرة. كل جزء يولّد مجالاً جزئياً. بجمعها (التكامل) نحصل على المجال الكلي!")
-        st.markdown("""
-        <div class="formula-box"><div class="formula">dB = (μ₀ / 4π) × (I · dL · sinθ) / r²</div></div>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div class="formula-box"><div class="formula">dB = (μ₀ / 4π) × (I · dL · sinθ) / r²</div></div>""", unsafe_allow_html=True)
         st.markdown("""
         | الرمز | المعنى | الوحدة |
         |-------|--------|--------|
@@ -473,33 +490,28 @@ def main():
 
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("## 📝 اشتقاق ملف دائري")
-        st.markdown("""
-        <div class="derivation-step">θ = 90° → sinθ = 1<br>B = (μ₀I / 4πR²) × 2πR = μ₀I/(2R)<br><b>لـ N لفة:</b> B = μ₀IN / (2R)</div>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div class="derivation-step">θ = 90° → sinθ = 1<br>B = (μ₀I / 4πR²) × 2πR = μ₀I/(2R)<br><b>لـ N لفة:</b> B = μ₀IN / (2R)</div>""", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("## 📝 اشتقاق ملف لولبي")
-        st.markdown("""
-        <div class="derivation-step">n = N/L (لفات/م)<br>بتجميع تأثير اللفات:<br><b>B = μ₀In = μ₀IN / L</b></div>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div class="derivation-step">n = N/L (لفات/م)<br>بتجميع تأثير اللفات:<br><b>B = μ₀In = μ₀IN / L</b></div>""", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown('<div class="life-example">', unsafe_allow_html=True)
-        st.markdown("### 💡 تشبيه التكامل")
-        st.markdown("تخيّل عدّ الناس في طابور: تُحصي مجموعة صغيرة (dL) ثم تنتقل للتي بعدها... **التكامل** = جمع كل المجموعات!")
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('<div class="life-example">### 💡 تشبيه التكامل: عدّ الناس في طابور - تُحصي مجموعة صغيرة ثم تنتقل... التكامل = جمع كل المجموعات!</div>', unsafe_allow_html=True)
 
     # ═══ TAB 2: WIRE ═══
     with tabs[2]:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("## 📏 موصل مستقيم لانهائي")
         st.markdown("""<div class="formula-box"><div class="formula">B = μ₀ × μr × I / (2πr)</div></div>""", unsafe_allow_html=True)
+        st.markdown('> **قاعدة اليد اليمنى:** الإبهام لاتجاه التيار → لف الأصابع = اتجاه المجال')
+        st.markdown('- تيار ⊙ خارج الصفحة → المجال **عكس عقارب الساعة**\n- تيار ⊗ داخل الصفحة → المجال **مع عقارب الساعة**')
 
         col1, col2 = st.columns(2)
         with col1:
             current_wire = st.slider("التيار I (أمبير) - موصل:", 0.1, 20.0, 5.0, 0.1, key="sl_wire_I")
-            current_dir_wire = st.radio("اتجاه التيار:", ["للأعلى (خارج الصفحة)", "للأسفل (داخل الصفحة)"], index=0, horizontal=True, key="rd_wire_dir")
+            current_dir_wire = st.radio("اتجاه التيار:", ["للأعلى (خارج الصفحة) ⊙", "للأسفل (داخل الصفحة) ⊗"], index=0, horizontal=True, key="rd_wire_dir")
             dir_wire = 1 if "للأعلى" in current_dir_wire else -1
             if st.button("🔄 عكس التيار", use_container_width=True, key="btn_wire"):
                 dir_wire *= -1; st.rerun()
@@ -517,7 +529,6 @@ def main():
 
         st.components.v1.html(straight_wire_animation(dir_wire, current_wire, distance_wire, material_mu), height=520)
         st.pyplot(plot_straight_wire_field(current_wire, distance_wire, material_mu))
-
         st.markdown('<div class="life-example">### 🌟 كابلات الطاقة تحمل تيارات كبيرة، مجالها يؤثر على البوصلة إذا اقتربت كثيراً!</div>', unsafe_allow_html=True)
 
     # ═══ TAB 3: COIL ═══
@@ -525,13 +536,15 @@ def main():
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("## 🔄 ملف دائري")
         st.markdown("""<div class="formula-box"><div class="formula">B = μ₀ × μr × I × N / (2R)</div></div>""", unsafe_allow_html=True)
+        st.markdown('> **قاعدة اليد اليمنى:** أصابعك لاتجاه التيار → الإبهام = اتجاه المجال B')
+        st.markdown('- مجال **للأعلى** → التيار **عكس عقارب الساعة**\n- مجال **للأسفل** → التيار **مع عقارب الساعة**')
 
         col1, col2 = st.columns(2)
         with col1:
             current_coil = st.slider("التيار I (أمبير) - ملف دائري:", 0.1, 20.0, 5.0, 0.1, key="sl_coil_I")
             N_coil = st.slider("عدد اللفات N - ملف دائري:", 1, 50, 5, 1, key="sl_coil_N")
-            current_dir_coil = st.radio("اتجاه التيار - ملف:", ["عكس عقارب الساعة", "مع عقارب الساعة"], index=0, horizontal=True, key="rd_coil_dir")
-            dir_coil = 1 if "عكس" in current_dir_coil else -1
+            current_dir_coil = st.radio("اتجاه المجال B:", ["للأعلى ↑", "للأسفل ↓"], index=0, horizontal=True, key="rd_coil_dir")
+            dir_coil = 1 if "للأعلى" in current_dir_coil else -1
         with col2:
             R_coil = st.slider("نصف القطر R (متر) - ملف دائري:", 0.01, 1.0, 0.1, 0.01, key="sl_coil_R")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -542,7 +555,8 @@ def main():
             <div style="font-size:0.9em;color:#2e7d32;margin-top:8px">N={N_coil} | I={current_coil}A | R={R_coil}m | μr={material_mu}</div>
         </div>""", unsafe_allow_html=True)
 
-        st.markdown(f'<div class="info-box">كل لفة من الـ {N_coil} تُساهم بمجال. المجال الكلي = {N_coil} × مجال لفة واحدة. عكس التيار → عكس المجال!</div>', unsafe_allow_html=True)
+        b_dir_text = "عكس عقارب الساعة" if dir_coil == 1 else "مع عقارب الساعة"
+        st.markdown(f'<div class="info-box">المجال {current_dir_coil} → التيار يسري **{b_dir_text}** في الملف. كل لفة من الـ {N_coil} تُساهم بمجال!</div>', unsafe_allow_html=True)
 
         st.components.v1.html(circular_coil_animation(dir_coil, current_coil, N_coil, R_coil, material_mu), height=520)
         st.pyplot(plot_coil_field(current_coil, N_coil, R_coil, material_mu))
@@ -552,14 +566,14 @@ def main():
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("## 🔩 ملف لولبي")
         st.markdown("""<div class="formula-box"><div class="formula">B = μ₀ × μr × I × n = μ₀ × μr × I × N / L</div></div>""", unsafe_allow_html=True)
-        st.markdown("سلك ملفوف أسطوانياً. المجال داخله **منتظم** (ثابت) عندما يكون طوله >> قطره!")
+        st.markdown("سلك ملفوف أسطوانياً. المجال داخله **منتظم** عندما يكون طوله >> قطره!")
 
         col1, col2 = st.columns(2)
         with col1:
             current_sol = st.slider("التيار I (أمبير) - لولبي:", 0.1, 20.0, 5.0, 0.1, key="sl_sol_I")
             n_sol = st.slider("كثافة اللفات n (لفة/م) - لولبي:", 100, 5000, 1400, 50, key="sl_sol_n")
-            current_dir_sol = st.radio("اتجاه التيار - لولبي:", ["عكس عقارب الساعة", "مع عقارب الساعة"], index=0, horizontal=True, key="rd_sol_dir")
-            dir_sol = 1 if "عكس" in current_dir_sol else -1
+            current_dir_sol = st.radio("اتجاه المجال - لولبي:", ["الشمالي لليمين N→", "الشمالي لليسار ←N"], index=0, horizontal=True, key="rd_sol_dir")
+            dir_sol = 1 if "لليمين" in current_dir_sol else -1
         with col2:
             L_sol = st.slider("طول الملف L (متر) - لولبي:", 0.1, 2.0, 0.5, 0.05, key="sl_sol_L")
             N_sol = int(n_sol * L_sol)
@@ -572,12 +586,11 @@ def main():
             <div style="font-size:0.9em;color:#2e7d32;margin-top:8px">n={n_sol}/m | I={current_sol}A | L={L_sol}m | N={N_sol}</div>
         </div>""", unsafe_allow_html=True)
 
-        st.markdown('<div class="info-box">المجال منتظم داخل الملف. عكس التيار → تبادل الأقطاب N و S. المجال خارج الملف ضعيف جداً!</div>', unsafe_allow_html=True)
+        st.markdown('<div class="info-box">المجال منتظم داخل الملف. عكس اتجاه المجال → تبادل الأقطاب N و S!</div>', unsafe_allow_html=True)
 
         st.components.v1.html(solenoid_animation(dir_sol, current_sol, n_sol, L_sol, material_mu), height=500)
         st.pyplot(plot_solenoid_field(current_sol, n_sol, material_mu))
-
-        st.markdown('<div class="life-example">### 🌟 جهاز الرنين المغناطيسي MRI يستخدم ملفاً لولبياً ضخماً (~1.5 تسلا) لصور تفصيلية!</div>', unsafe_allow_html=True)
+        st.markdown('<div class="life-example">### 🌟 جهاز الرنين المغناطيسي MRI يستخدم ملفاً لولبياً ضخماً (~1.5 تسلا)!</div>', unsafe_allow_html=True)
 
     # ═══ TAB 5: RIGHT HAND ═══
     with tabs[5]:
@@ -587,17 +600,14 @@ def main():
         **موصل مستقيم:** الإبهام = اتجاه التيار → لف الأصابع = اتجاه المجال B
         **ملف دائري/لولبي:** لف الأصابع = اتجاه التيار → الإبهام = اتجاه المجال B
         """)
-
         case_rh = st.radio("اختر الحالة:", ["موصل مستقيم", "ملف دائري", "ملف لولبي"], horizontal=True, key="rd_rh_case")
         case_key = {"موصل مستقيم": "wire", "ملف دائري": "coil", "ملف لولبي": "solenoid"}[case_rh]
         dir_rh = st.radio("اتجاه التيار - يد:", ["الأصلي", "العكس"], horizontal=True, index=0, key="rd_rh_dir")
         dir_rh_val = 1 if "الأصلي" in dir_rh else -1
         st.markdown('</div>', unsafe_allow_html=True)
-
         st.components.v1.html(right_hand_animation(case_key, dir_rh_val), height=540)
-
         st.markdown('<div class="warning-box">⚠️ استخدم اليد **اليمنى** فقط! اليسرى تعطي الاتجاه المعاكس!</div>', unsafe_allow_html=True)
-        st.markdown('<div class="life-example">### 🌟 تشبيه: المسمار - تدور المفك (المجال) والإبهام (التيار) مرتبطان دائماً!</div>', unsafe_allow_html=True)
+        st.markdown('<div class="life-example">### 🌟 تشبيه: المسمار - تدور المفك (المجال) والإبهام (التيار) مرتبطان!</div>', unsafe_allow_html=True)
 
     # ═══ TAB 6: PLASMA ═══
     with tabs[6]:
@@ -605,14 +615,13 @@ def main():
         st.markdown("## ☢️ احتواء البلازما بالمجال المغناطيسي")
         st.markdown("""
         ### 🔥 البلازما = الحالة الرابعة للمادة
-        غاز مسخّن لـ **ملايين الدرجات** → يتفكك إلى أيونات موجبة + إلكترونات سالبة
+        غاز مسخّن لـ **ملايين الدرجات** → أيونات موجبة + إلكترونات سالبة
 
         ### ❓ لماذا الاحتواء؟
-        مفاعلات الاندماج النووي تحتاج بلازما، لكنها **تُذيب أي وعاء مادي**!
-        **الحل:** المجال المغناطيسي كـ "وعاء غير ملموس" 🔮
+        البلازما **تُذيب أي وعاء مادي**! **الحل:** المجال المغناطيسي كـ "وعاء غير ملموس" 🔮
 
         ### 🧲 الآلية: F = qv × B
-        الجسيمات المشحونة المتحركة تدور في مسارات حلزونية حول خطوط المجال ولا تهرب!
+        الجسيمات المشحونة تدور حلزونياً حول خطوط المجال ولا تهرب!
         """)
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -638,7 +647,6 @@ def main():
         | أكبر مشروع (ITER) | فرنسا - قيد البناء |
         """)
         st.markdown('</div>', unsafe_allow_html=True)
-
         st.markdown('<div class="success-box">### ✨ من قانون بسيط → طاقة نظيفة لا نهائية! **هذا جمال الفيزياء** 🌍</div>', unsafe_allow_html=True)
 
     # ═══ TAB 7: QUIZ ═══
@@ -669,7 +677,7 @@ def main():
             {"q": "مضاعفة N و L معاً في لولبي يُحدث:",
              "opts": ["يُضاعف B", "ثابت B", "يُربَع B", "ينقص B"], "c": 1, "exp": "B=μ₀I(N/L)، النسبة ثابتة!"},
             {"q": "المجال على امتداد موصل مستقيم يساوي:",
-             "opts": ["أقصى قيمة", "صفراً", "نصف القصوى", "يعتمد على الطول"], "c": 0, "exp": "θ=0 أو 180° → sinθ=0 → B=0"},
+             "opts": ["أقصى قيمة", "صفراً", "نصف القصوى", "يعتمد على الطول"], "c": 1, "exp": "θ=0 أو 180° → sinθ=0 → B=0"},
         ]
 
         for i, q in enumerate(questions):
